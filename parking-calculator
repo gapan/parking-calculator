@@ -1,0 +1,187 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+import gtk
+import os
+import string
+from datetime import timedelta
+
+def dateDiff(startDate, endDate):
+	"""
+	Returns date diff as the following tuple:
+		(difference_in_months, difference_in_days)
+	If startDate is later than endDate it returns 0 values
+	"""
+	startYear, startMonth, startDay = startDate
+	endYear, endMonth, endDay = endDate
+	# days since 1/1/2000 (approximate)
+	startPeriod = startDay + startMonth*30 + startYear*12*30
+	endPeriod = endDay + endMonth*30 + endYear*12*30
+	if (startPeriod > endPeriod):
+		return (0,0)
+	else:
+		diffYears = endYear - startYear
+		diffMonths = endMonth - startMonth
+		diffDays = endDay - startDay
+		if (diffDays < 0):
+			diffDays+=30
+			diffMonths-=1
+		if (diffMonths < 0):
+			diffMonths+=12
+			diffYears-=1
+		return (diffYears*12+diffMonths, diffDays)
+
+class ParkingCalculator:
+	def radiobuttonCallback(self, widget=None, data=None):
+		if (widget.get_active() is True):
+			if (data=="month"):
+				self.entryEurosPerMonth.set_sensitive(True)
+				self.labelEuros.set_sensitive(True)
+				self.entryMEurosPerMeter.set_sensitive(False)
+				self.entryMeters.set_sensitive(False)
+				self.labelMEurosPerMeter.set_sensitive(False)
+				self.labelMeters.set_sensitive(False)
+				self.entryFtEurosPerMeter.set_sensitive(False)
+				self.entryFeet.set_sensitive(False)
+				self.labelFtEurosPerMeter.set_sensitive(False)
+				self.labelFeet.set_sensitive(False)
+			elif (data=="meter"):
+				self.entryEurosPerMonth.set_sensitive(False)
+				self.labelEuros.set_sensitive(False)
+				self.entryMEurosPerMeter.set_sensitive(True)
+				self.entryMeters.set_sensitive(True)
+				self.labelMEurosPerMeter.set_sensitive(True)
+				self.labelMeters.set_sensitive(True)
+				self.entryFtEurosPerMeter.set_sensitive(False)
+				self.entryFeet.set_sensitive(False)
+				self.labelFtEurosPerMeter.set_sensitive(False)
+				self.labelFeet.set_sensitive(False)
+			else:
+				self.entryEurosPerMonth.set_sensitive(False)
+				self.labelEuros.set_sensitive(False)
+				self.entryMEurosPerMeter.set_sensitive(False)
+				self.entryMeters.set_sensitive(False)
+				self.labelMEurosPerMeter.set_sensitive(False)
+				self.labelMeters.set_sensitive(False)
+				self.entryFtEurosPerMeter.set_sensitive(True)
+				self.entryFeet.set_sensitive(True)
+				self.labelFtEurosPerMeter.set_sensitive(True)
+				self.labelFeet.set_sensitive(True)
+
+	def gtk_main_quit(self, widget, data=None):
+		gtk.main_quit()
+
+	def inputError(self):
+			self.labelDays.set_text("ΣΦΑΛΜΑ!")
+			self.labelCostPerMonth.set_text("")
+			self.labelCost.set_text("")
+			self.labelCostWithVAT.set_text("")
+
+	def on_buttonCalc_clicked(self, widget, data=None):
+		startDate = self.calendarStart.get_date()
+		endDate = self.calendarEnd.get_date()
+		
+		dd = dateDiff(startDate,endDate)
+
+		valid = False
+		if (self.radiobuttonPerMonth.get_active() is True):
+			try:
+				eurosPerMonth = float(string.replace(self.entryEurosPerMonth.get_text(), ",", "."))
+				if (eurosPerMonth<=0):
+					self.inputError()
+				else:
+					costPerMonth = eurosPerMonth
+				
+					valid = True
+			except ValueError:
+				self.inputError()
+		elif (self.radiobuttonPerMeter.get_active() is True):
+			try:
+				meters = float(string.replace(self.entryMeters.get_text(), ",", "."))
+				eurosPerMeter = float(string.replace(self.entryMEurosPerMeter.get_text(), ",", "."))
+				if ((meters<=0) or (eurosPerMeter<=0)):
+					self.inputError()
+				else:
+					costPerMonth = meters*eurosPerMeter
+					valid = True
+			except ValueError:
+				self.inputError()
+		else:
+			try:
+				feet = float(string.replace(self.entryFeet.get_text(), ",", "."))
+				eurosPerMeter = float(string.replace(self.entryFtEurosPerMeter.get_text(), ",", "."))
+				if ((feet<=0) or (eurosPerMeter<=0)):
+					self.inputError()
+				else:
+					costPerMonth = feet*0.3048*eurosPerMeter
+					valid = True
+			except ValueError:
+				self.inputError()
+
+		if (valid is True):
+			self.labelDays.set_text(str(dd[0])+" μήνες και "+str(dd[1])+" ημέρες")
+			cost = dd[0]*costPerMonth+dd[1]*costPerMonth/30
+			costWithVAT = cost*1.23
+			self.labelCostPerMonth.set_text('%.2f €' % costPerMonth)
+			self.labelCost.set_text('%.2f €' % cost)
+			self.labelCostWithVAT.set_text('%.2f €' % costWithVAT)
+
+	def on_radiobuttonPerMonth_clicked(self, widget, data=None):
+		print "month"
+
+	def on_radiobuttonPerMeter_clicked(self, widget, data=None):
+		print "meter"
+	
+	def on_radiobuttonPerFoot_clicked(self, widget, data=None):
+		print "foot"
+	
+	def __init__(self):
+		builder = gtk.Builder()
+		if os.path.exists('parking-calculator.glade'):
+			builder.add_from_file('parking-calculator.glade')
+		elif os.path.exists('/usr/share/parking-calculator/parking-calculator.glade'):
+			builder.add_from_file('/usr/share/parking-calculator/parking-calculator.glade')
+		self.window = builder.get_object('parkingCalculatorWindow')
+		self.calendarStart = builder.get_object('calendarStart')
+		self.calendarEnd = builder.get_object('calendarEnd')
+		self.labelDays = builder.get_object('labelDays')
+		self.radiobuttonPerMonth = builder.get_object('radiobuttonPerMonth')	
+		self.radiobuttonPerMeter = builder.get_object('radiobuttonPerMeter')	
+		self.radiobuttonPerFoot = builder.get_object('radiobuttonPerFoot')	
+		self.radiobuttonPerMonth.connect("toggled", self.radiobuttonCallback, "month")
+		self.radiobuttonPerMeter.connect("toggled", self.radiobuttonCallback, "meter")
+		self.radiobuttonPerFoot.connect("toggled", self.radiobuttonCallback, "foot")
+		self.entryEurosPerMonth = builder.get_object('entryEurosPerMonth')
+		self.entryMEurosPerMeter = builder.get_object('entryMEurosPerMeter')
+		self.entryMEurosPerMeter.set_text("10")
+		self.entryFtEurosPerMeter = builder.get_object('entryFtEurosPerMeter')
+		self.entryFtEurosPerMeter.set_text("10")
+		self.entryMeters = builder.get_object('entryMeters')
+		self.entryFeet = builder.get_object('entryFeet')
+		self.labelEuros = builder.get_object('labelEuros')
+		self.labelMEurosPerMeter = builder.get_object('labelMEurosPerMeter')
+		self.labelFtEurosPerMeter = builder.get_object('labelFtEurosPerMeter')
+		self.labelMeters = builder.get_object('labelMeters')
+		self.labelFeet = builder.get_object('labelFeet')
+		self.labelCostPerMonth = builder.get_object('labelCostPerMonth')
+		self.labelCost = builder.get_object('labelCost')
+		self.labelCostWithVAT = builder.get_object('labelCostWithVAT')
+		self.radiobuttonPerMeter.set_active(True)
+
+		# calendar selections on startup
+		nowYear, nowMonth, nowDay = self.calendarEnd.get_date();
+		if (nowMonth<7):
+			startMonth=nowMonth+6;
+			startYear=nowYear-1;
+		else:
+			startMonth=nowMonth-6
+		startDay=1
+		self.calendarStart.select_month(startMonth, startYear)
+		self.calendarStart.select_day(startDay)
+
+		builder.connect_signals(self)
+
+if __name__ == "__main__":
+	app = ParkingCalculator()
+	app.window.show()
+	gtk.main()

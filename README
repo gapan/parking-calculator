@@ -1,0 +1,17 @@
+So, a friend of mine has a shipyard and he wanted an easy way to calculate
+parking fees for boats. He bills his clients per meter per month and he wanted a
+simple app that would:
+
+a. given a starting date and an end date, calculate the number of months and
+days in between
+b. for that duration, calculate the fees that should be paid, according to a
+given price.
+
+The price can be given in one of three ways:
+1. fees/month, directly
+2. price/meter/month and also provide the boat length in meters
+3. price/meter/month and also provide the boat length in feet
+
+For now, all strings in the application's only window are in Greek. VAT is also
+hardcoded to the current level in Greece, which is 23%.
+

@@ -1,0 +1,7 @@
+[Desktop Entry]
+Categories=Office;
+Exec=parking-calculator
+Icon=accessories-calculator
+Name=Υπολογισμός Parking
+Terminal=false
+Type=Application
