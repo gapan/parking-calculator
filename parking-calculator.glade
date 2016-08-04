@@ -569,7 +569,7 @@
                 <property name="visible">True</property>
                 <property name="can_focus">False</property>
                 <property name="xalign">0.89999997615814209</property>
-                <property name="label" translatable="yes">(με 23 % ΦΠΑ):</property>
+                <property name="label" translatable="yes">(με 24 % ΦΠΑ):</property>
                 <attributes>
                   <attribute name="weight" value="bold"/>
                 </attributes>

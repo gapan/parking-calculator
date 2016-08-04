@@ -6,6 +6,9 @@ import os
 import string
 from datetime import timedelta
 
+#VAT %
+VAT=0.23
+
 def dateDiff(startDate, endDate):
 	"""
 	Returns date diff as the following tuple:
@@ -121,7 +124,7 @@ class ParkingCalculator:
 		if (valid is True):
 			self.labelDays.set_text(str(dd[0])+" μήνες και "+str(dd[1])+" ημέρες")
 			cost = dd[0]*costPerMonth+dd[1]*costPerMonth/30
-			costWithVAT = cost*1.23
+			costWithVAT = cost*(1+VAT)
 			self.labelCostPerMonth.set_text('%.2f €' % costPerMonth)
 			self.labelCost.set_text('%.2f €' % cost)
 			self.labelCostWithVAT.set_text('%.2f €' % costWithVAT)
